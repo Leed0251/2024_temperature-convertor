@@ -4,6 +4,15 @@ class Converter:
     
     def __init__(self): # Initialized
 
+        # Initialize variables
+        self.var_feedback = StringVar()
+        self.var_feedback.set("")
+
+        self.var_has_error = BooleanVar()
+        self.var_has_error.set(False)
+
+        self.all_calculations = []
+
         # common format for all buttons
         #Arial size 14 bold, with white text
         button_font = ("Arial", "12", "bold")
@@ -34,10 +43,10 @@ class Converter:
         self.temp_entry.grid(row=2, padx=10, pady=10)
 
         error = "Please enter a number"
-        self.temp_error = Label(self.temp_frame, text="",
+        self.output_label = Label(self.temp_frame, text="",
             fg="#9C0000"
         )
-        self.temp_error.grid(row=3)
+        self.output_label.grid(row=3)
 
         # Conversion, help and history / export buttons
         self.button_frame = Frame(self.temp_frame)
@@ -50,7 +59,7 @@ class Converter:
             fg=button_fg,
             width=12,
 
-            command=self.to_celsius
+            command=lambda: self.temp_convert(-459)
         )
         self.to_celsius_button.grid(row=0, column=0, padx=5, pady=5)
 
@@ -60,6 +69,8 @@ class Converter:
             bg="#090",
             fg=button_fg,
             width=12,
+
+            command=lambda: self.temp_convert(-273)
         )
         self.to_farenheit_button.grid(row=0, column=1, padx=5, pady=5)
 
@@ -82,13 +93,15 @@ class Converter:
         )
         self.to_history_button.grid(row=1, column=1, padx=5, pady=5)
 
+    # Checks user input and if it's valid, converts temperature
     def check_temp(self,min_value):
 
         has_error = False
         error = "Please enter a number that is more than {}".format(min_value)
 
+        response = self.temp_entry.get()
+
         try:
-            response = self.temp_entry.get()
             response = float(response)
 
             if response < min_value:
@@ -97,18 +110,80 @@ class Converter:
         except ValueError:
             has_error = True
 
-        # If the number is invalid, display error message
+        # Sets var_has_error so that entrybox and
+        # Labels can be correctly formatted by formatting function
         if has_error:
-            self.temp_error.config(text=error, fg="#9C0000")
+            self.var_has_error.set(True)
+            self.var_feedback.set(error)
+            return "invalid"
+
+        # If we have no errors...
         else:
-            self.temp_error.config(text="You are OK", fg="blue")
+            # Set to False in case of previous errors
+            self.var_has_error.set(False)
 
-            # If we have at least one valid calculation,
-            # Enable history / export button
+            # Return number to be
+            # Converted and enable history button
             self.to_history_button.config(state=NORMAL)
+            return response
 
-    def to_celsius(self):
-        self.check_temp(-459)
+    @staticmethod
+    def round_ans(val):
+        var_rounded = (val * 2 + 1) // 2
+        return "{:.0f}".format(var_rounded)
+
+    # check temperature is valid and convert it
+    def temp_convert(self, min_val):
+        to_convert = self.check_temp(min_val)
+        deg_sign = u'\N{DEGREE SIGN}'
+        set_feedback = True
+        answer = ""
+        from_to = ""
+
+        if to_convert == "invalid":
+            set_feedback = False
+
+        # Convert to Celsius
+        elif min_val == -459:
+            # do calculation
+            answer = (to_convert - 32) * 5 / 9
+            from_to = "{} F{} is {} C{}"
+
+        #convert to Fahrenheit
+        else:
+            answer = to_convert * 1.8 + 32
+            from_to = "{} C{} is {} F{}"
+
+        if set_feedback:
+            to_convert = self.round_ans(to_convert)
+            answer = self.round_ans(answer)
+
+            # create user output and add to calculation history
+            feedback = from_to.format(to_convert, deg_sign, answer, deg_sign)
+            self.var_feedback.set(feedback)
+
+            self.all_calculations.append(feedback)
+
+            # delete code below when history component is working!
+            print(self.all_calculations)
+
+        self.output_answer()
+
+    # shows user output and clears entry widget
+    # ready for next calculation
+    def output_answer(self):
+        output = self.var_feedback.get()
+        has_errors = self.var_has_error.get()
+
+        if has_errors:
+            # red text, pink entry box
+            self.output_label.config(fg="#9C0000")
+            self.temp_entry.config(bg="#F8CECC")
+        else:
+            self.output_label.config(fg="#004C00")
+            self.temp_entry.config(bg="#FFFFFF")
+
+        self.output_label.config(text=output)
 
 # main routine
 if __name__ == "__main__":

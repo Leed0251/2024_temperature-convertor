@@ -41,10 +41,10 @@ class Converter:
         self.temp_entry.grid(row=2, padx=10, pady=10)
 
         error = "Please enter a number"
-        self.temp_error = Label(self.temp_frame, text="",
+        self.output_label = Label(self.temp_frame, text="",
             fg="#9C0000"
         )
-        self.temp_error.grid(row=3)
+        self.output_label.grid(row=3)
 
         # Conversion, help and history / export buttons
         self.button_frame = Frame(self.temp_frame)
@@ -128,9 +128,16 @@ class Converter:
 
         if to_convert != "invalid":
             # do calculation
-            self.var_feedback.set("Converting {} to C: :)".format(to_convert))
+            self.var_feedback.set("Converting {} to C :)".format(to_convert))
 
         self.output_answer()
+
+    def to_fahrenheit(self):
+        to_convert = self.check_temp(-273)
+
+        if to_convert != "invalid":
+            # do calculation
+            self.var_feedback.set("Converting {} to F :)".format(to_convert))
 
     # Shows user output and clears entry widget
     # ready for next calculation
@@ -140,13 +147,13 @@ class Converter:
 
         if has_errors:
             # red text, pink entry box
-            self.temp_error.config(fg="#9C0000")
+            self.output_label.config(fg="#9C0000")
             self.temp_entry.config(bg="#F8CECC")
         else:
-            self.temp_error.config(fg="#004C00")
+            self.output_label.config(fg="#004C00")
             self.temp_entry.config(bg="#FFFFFF")
 
-        self.temp_error.config(text=output)
+        self.output_label.config(text=output)
 
 # main routine
 if __name__ == "__main__":
